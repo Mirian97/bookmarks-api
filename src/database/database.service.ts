@@ -1,15 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../generated/client';
 
 @Injectable()
-export class DatabaseService extends PrismaClient {
-  constructor() {
-    super({
-      datasources: {
-        db: {
-          url: 'postgresql://postgres:pass1234@localhost:5432/bookmarks',
-        },
-      },
-    });
-  }
-}
+export class DatabaseService extends PrismaClient {}
