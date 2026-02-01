@@ -1,12 +1,18 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import * as argon from 'argon2';
 import { DatabaseService } from 'src/database/database.service';
 import { AuthDto } from './dto';
 
 @Injectable()
 export class AuthService {
-  constructor(private db: DatabaseService) {}
+  constructor(
+    private db: DatabaseService,
+    private jwt: JwtService,
+    private config: ConfigService,
+  ) {}
 
   async signIn(body: AuthDto) {
     const user = await this.db.user.findFirst({
@@ -20,7 +26,7 @@ export class AuthService {
     if (!passwordMatches) {
       throw new ForbiddenException('Invalid Credentials');
     }
-    return userWithoutHash;
+    return await this.signToken(user.id, user.email);
   }
 
   async signUp(body: AuthDto) {
@@ -38,5 +44,14 @@ export class AuthService {
       },
     });
     return user;
+  }
+
+  private async signToken(userId: number, email: string) {
+    const payload = {
+      sub: userId,
+      email,
+    };
+    const secret = this.config.get<string>('JWT_SECRET');
+    return await this.jwt.signAsync(payload, { secret });
   }
 }
