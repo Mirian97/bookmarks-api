@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -21,8 +20,7 @@ export class AuthService {
     if (!user) {
       throw new ForbiddenException('Invalid Credentials');
     }
-    const { hash, ...userWithoutHash } = user;
-    const passwordMatches = await argon.verify(hash, body.password);
+    const passwordMatches = await argon.verify(user.hash, body.password);
     if (!passwordMatches) {
       throw new ForbiddenException('Invalid Credentials');
     }
@@ -37,21 +35,28 @@ export class AuthService {
       throw new ForbiddenException('Credential taken');
     }
     const hash = await argon.hash(body.password);
-    const { hash: _, ...user } = await this.db.user.create({
+    const user = await this.db.user.create({
       data: {
         email: body.email,
         hash,
       },
     });
-    return user;
+    return await this.signToken(user.id, user.email);
   }
 
-  private async signToken(userId: number, email: string) {
+  private async signToken(
+    userId: number,
+    email: string,
+  ): Promise<{ accessToken: string }> {
     const payload = {
       sub: userId,
       email,
     };
     const secret = this.config.get<string>('JWT_SECRET');
-    return await this.jwt.signAsync(payload, { secret });
+    const accessToken = await this.jwt.signAsync(payload, {
+      secret,
+      expiresIn: '7d',
+    });
+    return { accessToken };
   }
 }
