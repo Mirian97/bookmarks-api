@@ -7,13 +7,15 @@ import { UpdateBookmarkDto } from './dto/update-bookmark.dto';
 export class BookmarkService {
   constructor(private db: DatabaseService) {}
 
-  async getAll() {
-    return await this.db.bookmark.findMany();
+  async getAll(userId: number) {
+    return await this.db.bookmark.findMany({
+      where: { userId },
+    });
   }
 
-  async getById(id: number) {
+  async getById(userId: number, bookmarkId: number) {
     return await this.db.bookmark.findUnique({
-      where: { id },
+      where: { id: bookmarkId, userId },
     });
   }
 
@@ -26,16 +28,16 @@ export class BookmarkService {
     });
   }
 
-  async update(id: number, body: UpdateBookmarkDto) {
+  async update(userId: number, bookmarkId: number, body: UpdateBookmarkDto) {
     return await this.db.bookmark.update({
-      where: { id },
+      where: { id: bookmarkId, userId },
       data: body,
     });
   }
 
-  async delete(id: number) {
+  async delete(userId: number, bookmarkId: number) {
     return await this.db.bookmark.delete({
-      where: { id },
+      where: { id: bookmarkId, userId },
     });
   }
 }
