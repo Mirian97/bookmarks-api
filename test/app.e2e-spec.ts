@@ -24,6 +24,7 @@ describe('App e2e', () => {
 
     db = app.get(DatabaseService);
     await db.cleanAll();
+    pactum.request?.setBaseUrl('http://localhost:3001');
   });
 
   afterAll(async () => {
@@ -31,22 +32,57 @@ describe('App e2e', () => {
   });
 
   describe('Auth', () => {
+    const dto: AuthDto = {
+      email: 'test@email.com',
+      password: '12345',
+    };
     describe('SignUp', () => {
-      const body: AuthDto = {
-        email: 'test@email.com',
-        password: '12345',
-      };
-      it('should sign in', () => {
+      it('should throw if password is empty', () => {
         return pactum
           .spec()
-          .post('http://localhost:3001/auth/sign-up')
-          .withBody(body)
+          .post('/auth/sign-up')
+          .withBody({
+            email: dto.email,
+          })
+          .expectStatus(HttpStatus.BAD_REQUEST);
+      });
+
+      it('should throw if email is empty', () => {
+        return pactum
+          .spec()
+          .post('/auth/sign-up')
+          .withBody({
+            password: dto.password,
+          })
+          .expectStatus(HttpStatus.BAD_REQUEST);
+      });
+
+      it('should sign up', () => {
+        return pactum
+          .spec()
+          .post('/auth/sign-up')
+          .withBody(dto)
           .expectStatus(HttpStatus.CREATED);
       });
     });
-  });
 
-  describe('SignIn', () => {});
+    describe('SignIn', () => {
+      it('should throw if no body was provided', () => {
+        return pactum
+          .spec()
+          .post('/auth/sign-in')
+          .expectStatus(HttpStatus.BAD_REQUEST);
+      });
+
+      it('should sign in', () => {
+        return pactum
+          .spec()
+          .post('/auth/sign-in')
+          .withBody(dto)
+          .expectStatus(HttpStatus.OK);
+      });
+    });
+  });
 
   describe('User', () => {
     describe('Get user', () => {});
