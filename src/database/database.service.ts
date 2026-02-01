@@ -11,4 +11,11 @@ export class DatabaseService extends PrismaClient {
     });
     super({ adapter });
   }
+
+  cleanAll() {
+    return this.$transaction([
+      this.bookmark.deleteMany(),
+      this.user.deleteMany(),
+    ]);
+  }
 }

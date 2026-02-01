@@ -1,14 +1,16 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { AppModule } from 'src/app.module';
+import { DatabaseService } from 'src/database/database.service';
 
 describe('App e2e', () => {
   let app: INestApplication;
+  let db: DatabaseService;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [],
+      imports: [AppModule],
     }).compile();
-
     app = moduleRef.createNestApplication();
     app.useGlobalPipes(
       new ValidationPipe({
@@ -16,6 +18,9 @@ describe('App e2e', () => {
       }),
     );
     await app.init();
+
+    db = app.get(DatabaseService);
+    await db.cleanAll();
   });
 
   afterAll(async () => {
