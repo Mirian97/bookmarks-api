@@ -20,8 +20,6 @@ services:
       POSTGRES_DB: bookmarks
     ports:
       - '5433:5432'
-    volumes:
-      - bookmarks-db:/var/lib/postgresql
     networks:
       - freecodecamp
 
