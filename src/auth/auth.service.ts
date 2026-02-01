@@ -7,15 +7,20 @@ import { AuthDto } from './dto';
 @Injectable()
 export class AuthService {
   constructor(private db: DatabaseService) {}
+
   async signIn(body: AuthDto) {
-    const hash = await argon.hash(body.password);
-    const user = this.db.user.create({
-      data: {
-        email: body.email,
-        hash,
-      },
+    const user = await this.db.user.findFirst({
+      where: { email: body.email },
     });
-    return user;
+    if (!user) {
+      throw new ForbiddenException('Invalid Credentials');
+    }
+    const { hash, ...userWithoutHash } = user;
+    const passwordMatches = await argon.verify(hash, body.password);
+    if (!passwordMatches) {
+      throw new ForbiddenException('Invalid Credentials');
+    }
+    return userWithoutHash;
   }
 
   async signUp(body: AuthDto) {
