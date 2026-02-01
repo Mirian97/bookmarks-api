@@ -12,6 +12,19 @@ services:
     networks:
       - freecodecamp
 
+  test-db:
+    image: postgres:18.1-alpine3.23
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pass1234
+      POSTGRES_DB: bookmarks
+    ports:
+      - '5433:5432'
+    volumes:
+      - bookmarks-db:/var/lib/postgresql
+    networks:
+      - freecodecamp
+
 volumes:
   bookmarks-db:
 
