@@ -4,6 +4,7 @@ import * as pactum from 'pactum';
 import { AppModule } from 'src/app.module';
 import { AuthDto } from 'src/auth/dto';
 import { DatabaseService } from 'src/database/database.service';
+import { UpdateUserDto } from 'src/user/dto/update-user.dto';
 
 describe('App e2e', () => {
   let app: INestApplication;
@@ -79,26 +80,54 @@ describe('App e2e', () => {
           .spec()
           .post('/auth/sign-in')
           .withBody(dto)
-          .expectStatus(HttpStatus.OK);
+          .expectStatus(HttpStatus.OK)
+          .stores('usetAt', 'access_token');
       });
     });
   });
 
   describe('User', () => {
-    describe('Get user', () => {});
+    describe('Get user', () => {
+      it('should get current user', () => {
+        return pactum
+          .spec()
+          .get('/users/who-ami')
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .expectStatus(HttpStatus.OK);
+      });
+    });
 
-    describe('Edit user', () => {});
+    describe('Update user', () => {
+      it('should update current user', () => {
+        const dto: UpdateUserDto = {
+          email: 'mirian@gmail.com',
+          firstName: 'Mirian',
+        };
+        return pactum
+          .spec()
+          .patch('/users/update')
+          .withBody(dto)
+          .withHeaders({
+            Authorization: 'Bearer $S{userAt}',
+          })
+          .expectStatus(HttpStatus.OK)
+          .expectBodyContains(dto.email)
+          .expectBodyContains(dto.firstName);
+      });
+    });
   });
 
   describe('Bookmark', () => {
     describe('Get bookmarks', () => {});
 
-    describe('Get bookmark by id', () => {});
-
     describe('Create bookmark', () => {});
 
-    describe('Edit bookmark', () => {});
+    describe('Get bookmark by id', () => {});
 
-    describe('Delete bookmark', () => {});
+    describe('Update bookmark by id', () => {});
+
+    describe('Delete bookmark by id', () => {});
   });
 });
